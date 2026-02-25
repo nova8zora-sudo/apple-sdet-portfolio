@@ -39,7 +39,7 @@ jobs:
           python3 -m pytest test_images.py -v --html=../test-reports/image-report.html --self-contained-html
 
       - name: Upload test reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: test-reports

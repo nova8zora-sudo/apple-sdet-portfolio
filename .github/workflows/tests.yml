@@ -1,0 +1,46 @@
+name: Apple SDET Test Suite
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: |
+          pip install pytest pytest-html mutagen Pillow exifread
+
+      - name: Install FFmpeg and ExifTool
+        run: |
+          brew install ffmpeg exiftool
+
+      - name: Run video codec tests
+        run: |
+          cd video-codec-test-suite
+          ffmpeg -f lavfi -i testsrc=duration=5:size=1280x720:rate=30 -c:v libx264 sample.mp4
+          python3 -m pytest test_video.py -v --html=../test-reports/video-report.html --self-contained-html
+
+      - name: Run image format tests
+        run: |
+          cd image-format-validator
+          python3 -m pytest test_images.py -v --html=../test-reports/image-report.html --self-contained-html
+
+      - name: Upload test reports
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: test-reports
+          path: test-reports/
